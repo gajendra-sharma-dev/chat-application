@@ -18,6 +18,6 @@ router.post("/logout", VerifyJWT, logout);
 router.get("/getUser", VerifyJWT, getUser);
 router.patch("/updatepassword", VerifyJWT, updatePassword);
 router.patch("/update", VerifyJWT, UpdateUserDetail);
-router.patch("/updateaccessToken", VerifyJWT, refreshAccessToken);
+router.patch("/updateaccessToken", refreshAccessToken);
 
 export default router;

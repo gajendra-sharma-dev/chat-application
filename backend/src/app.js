@@ -24,15 +24,26 @@ import updatePasswordRouter from "./router/user.router.js";
 import refreshAccessTokenRouter from "./router/user.router.js";
 import getUserRouter from "./router/user.router.js";
 
+import createRoomRouter from "./router/room.router.js";
+import createGroupRouter from "./router/room.router.js";
+import getAllRoomRouter from "./router/room.router.js";
+import getRoomRouter from "./router/room.router.js";
+import addMemeberRouter from "./router/room.router.js";
+import leaveRoomRouter from "./router/room.router.js";
+
 app.use("/api/v1/users", registerRouter);
 app.use("/api/v1/users", loginRouter);
-
 app.use("/api/v1/users", logoutRouter);
 app.use("/api/v1/users", updateDetailRouter);
-
 app.use("/api/v1/users", updatePasswordRouter);
 app.use("/api/v1/users", refreshAccessTokenRouter);
-
 app.use("/api/v1/users", getUserRouter);
+
+app.use("/api/v1/users", createGroupRouter);
+app.use("/api/v1/users", getAllRoomRouter);
+app.use("/api/v1/users", createRoomRouter);
+app.use("/api/v1/users", getRoomRouter);
+app.use("/api/v1/users", addMemeberRouter);
+app.use("/api/v1/users", leaveRoomRouter);
 
 export default app;

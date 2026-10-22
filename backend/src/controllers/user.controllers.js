@@ -3,6 +3,7 @@ import asynchandler from "../util/AsyncHandler.js";
 import { ApiError } from "../util/ApiError.js";
 import { ApiResponse } from "../util/ApiResponse.js";
 import vaildator from "email-validator";
+import jwt from "jsonwebtoken";
 
 const generateAccessANDRefreshToken = async (userId) => {
   const user = await User.findById(userId);
@@ -131,8 +132,10 @@ const refreshAccessToken = asynchandler(async (req, res) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_KEY,
     );
+    console.log(decodedToken);
 
     const user = await User.findById(decodedToken?._id);
+    console.log(user);
 
     if (!user) {
       throw new ApiError(410, "Invaild refresh token");
@@ -163,7 +166,7 @@ const refreshAccessToken = asynchandler(async (req, res) => {
         ),
       );
   } catch (error) {
-    throw new ApiResponse(401, error?.massage || "Invaild refresh token");
+    throw new ApiError(401, error || "Invaild refresh token");
   }
 });
 
