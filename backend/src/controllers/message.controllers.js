@@ -19,6 +19,7 @@ const sendMessage = asynchandler(async (req, res) => {
   }
 
   const room = await Room.findOne({ _id: roomId, members: req.user?._id });
+  console.log(room);
 
   if (!room) {
     throw new ApiError(400, "you are not a member of this room");
