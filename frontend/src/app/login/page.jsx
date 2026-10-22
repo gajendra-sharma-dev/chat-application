@@ -1,27 +1,47 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { usecontext } from "@/context/AuthProvider";
+import { toast } from "@/components/ui/toast";
 function page() {
+  const router = useRouter();
+  const [error, setError] = useState(false);
+  const { login } = usecontext();
   const form = useForm({
     defaultValues: {
       email: "",
       password: "",
     },
   });
+  const onSubmit = async (data) => {
+    try {
+      await login(data);
+      router.replace("/dashboard");
+      toast.add({
+        title: "success",
+        description: "Login successfully",
+      });
+    } catch (error) {
+      setError(error?.response?.data?.errors || error?.response?.data?.message);
+    }
+  };
+
   return (
     <>
       <div className="flex min-h-screen items-center justify-center">
         <form
-          // onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="w-full max-w-md space-y-6 rounded-lg border p-8"
         >
           <h1 className="text-4xl font-bold">Join to sent Mestry Message...</h1>
           <h1 className="text-2xl font-bold">Login account</h1>
+          {error && <p className="text-red-600">{error}</p>}
 
           {/* email */}
           <Controller
