@@ -24,7 +24,7 @@ const createRoom = asynchandler(async (req, res) => {
     throw new ApiError(400, "user not found");
   }
 
-  const room = await Room.findOne({
+  let room = await Room.findOne({
     isGroup: false,
     members: { $all: [userId, myId], $size: 2 },
   }).populate("members", "username email");
@@ -34,9 +34,11 @@ const createRoom = asynchandler(async (req, res) => {
   if (!room) {
     room = await Room.create({
       isGroup: false,
-      members: { $all: [userId, myId], created_by: myId },
-    }).populate("members", "username email");
+      members: [userId, myId],
+      created_by: myId,
+    });
   }
+  room = await room.populate("members", "username email");
   console.log(room);
 
   return res
@@ -132,7 +134,7 @@ const addMembersInroom = asynchandler(async (req, res) => {
     throw new ApiError(400, "room not found");
   }
 
-  const addMember = Room.updateOne(
+  const addMember = await Room.updateOne(
     { _id: roomId },
     { $addToSet: { members: userId } },
   );

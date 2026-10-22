@@ -17,6 +17,6 @@ router.route("/createGroup").post(createRoomGroup);
 router.route("/getallroom").get(getMyallroom);
 router.route("/:roomId").get(getRoomById);
 router.route("/:roomId").post(addMembersInroom);
-router.route("/roomId").patch(leaveRoom);
+router.route("/:roomId").patch(leaveRoom);
 
 export default router;

@@ -5,7 +5,7 @@ const roomSchema = new Schema(
     members: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     name: {
       type: String,
-      required: true,
+      trim: true,
     },
     created_by: {
       type: mongoose.Types.ObjectId,

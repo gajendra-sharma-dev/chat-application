@@ -31,6 +31,9 @@ import getRoomRouter from "./router/room.router.js";
 import addMemeberRouter from "./router/room.router.js";
 import leaveRoomRouter from "./router/room.router.js";
 
+import sendMessageRouter from "./router/message.router.js";
+import getMessageRouter from "./router/message.router.js";
+
 app.use("/api/v1/users", registerRouter);
 app.use("/api/v1/users", loginRouter);
 app.use("/api/v1/users", logoutRouter);
@@ -45,5 +48,16 @@ app.use("/api/v1/users", createRoomRouter);
 app.use("/api/v1/users", getRoomRouter);
 app.use("/api/v1/users", addMemeberRouter);
 app.use("/api/v1/users", leaveRoomRouter);
+
+app.use("/api/v1/users", sendMessageRouter);
+app.use("/api/v1/users", getMessageRouter);
+
+app.use((err, req, res, next) => {
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message,
+    errors: err.errors || [],
+  });
+});
 
 export default app;
