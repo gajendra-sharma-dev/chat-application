@@ -10,6 +10,8 @@ import { toast } from "@/components/ui/toast";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
+import SidebarUser from "@/components/Sidebar";
+
 function page() {
   const { user, loading, logout } = usecontext();
   const [room, setRoom] = useState(null);
@@ -55,6 +57,7 @@ function page() {
   return (
     <>
       <Navbar />
+      <SidebarUser />
       <div className="flex min-h-screen items-center justify-center">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
