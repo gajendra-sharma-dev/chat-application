@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "@/components/ui/toast";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 function page() {
   const { user, loading, logout } = usecontext();
-  const [room, setRoom] = useState("");
-  const [name, setname] = useState("");
+  const [room, setRoom] = useState(null);
+  const [name, setname] = useState([]);
   const form = useForm({
     defaultValues: {
       username: "",
@@ -50,8 +51,10 @@ function page() {
       });
     }
   };
+
   return (
     <>
+      <Navbar />
       <div className="flex min-h-screen items-center justify-center">
         <form
           onSubmit={form.handleSubmit(onSubmit)}

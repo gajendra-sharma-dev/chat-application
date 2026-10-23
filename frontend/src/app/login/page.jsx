@@ -29,6 +29,9 @@ function page() {
       });
     } catch (error) {
       setError(error?.response?.data?.errors || error?.response?.data?.message);
+      console.log(error);
+      console.log(error?.response);
+      console.log(error?.response?.data?.error);
     }
   };
 
