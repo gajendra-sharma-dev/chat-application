@@ -212,6 +212,21 @@ const UpdateUserDetail = asynchandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, user, "user detail update successfully"));
 });
+const searchUsers = asynchandler(async (req, res) => {
+  const { q } = req.query;
+  if (!q?.trim()) throw new ApiError(400, "Search query is required");
+
+  const safeQ = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const users = await User.find({
+    _id: { $ne: req.user._id },
+    username: { $regex: safeQ, $options: "i" },
+  })
+    .select("username email")
+    .limit(10);
+
+  return res.status(200).json(new ApiResponse(200, users, "users fetched"));
+});
 
 export {
   registerUser,
@@ -221,4 +236,5 @@ export {
   refreshAccessToken,
   UpdateUserDetail,
   updatePassword,
+  searchUsers,
 };

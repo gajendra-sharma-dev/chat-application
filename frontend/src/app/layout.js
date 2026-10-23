@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "../context/AuthProvider.js";
 import { Toaster } from "@/components/ui/toast";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,7 +28,6 @@ export default function RootLayout({ children }) {
         <body className="min-h-full flex flex-col">
           {children}
           <Toaster />
-          <TooltipProvider>{children}</TooltipProvider>
         </body>
       </UserProvider>
     </html>

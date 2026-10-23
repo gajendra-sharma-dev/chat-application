@@ -7,6 +7,7 @@ import {
   refreshAccessToken,
   UpdateUserDetail,
   updatePassword,
+  searchUsers,
 } from "../controllers/user.controllers.js";
 import VerifyJWT from "../middleware/Auth.middleware.js";
 
@@ -19,5 +20,6 @@ router.get("/getUser", VerifyJWT, getUser);
 router.patch("/updatepassword", VerifyJWT, updatePassword);
 router.patch("/update", VerifyJWT, UpdateUserDetail);
 router.patch("/updateaccessToken", refreshAccessToken);
+router.get("/search", VerifyJWT, searchUsers);
 
 export default router;

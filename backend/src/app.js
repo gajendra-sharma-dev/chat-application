@@ -23,6 +23,7 @@ import updateDetailRouter from "./router/user.router.js";
 import updatePasswordRouter from "./router/user.router.js";
 import refreshAccessTokenRouter from "./router/user.router.js";
 import getUserRouter from "./router/user.router.js";
+import searchRouter from "./router/user.router.js";
 
 import createRoomRouter from "./router/room.router.js";
 import createGroupRouter from "./router/room.router.js";
@@ -41,6 +42,7 @@ app.use("/api/v1/users", updateDetailRouter);
 app.use("/api/v1/users", updatePasswordRouter);
 app.use("/api/v1/users", refreshAccessTokenRouter);
 app.use("/api/v1/users", getUserRouter);
+app.use("/api/v1/users", searchRouter);
 
 app.use("/api/v1/users", createGroupRouter);
 app.use("/api/v1/users", getAllRoomRouter);
