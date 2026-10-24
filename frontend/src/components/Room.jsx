@@ -1,4 +1,4 @@
-import api from "@/app/api/route";
+import api from "@/lib/api/route";
 import { usecontext } from "@/context/AuthProvider";
 import React from "react";
 

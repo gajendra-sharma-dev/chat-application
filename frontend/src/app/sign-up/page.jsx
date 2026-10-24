@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import Link from "next/link";
-import { usecontext } from "@/context/AuthProvider";
+import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 function page() {
+  const { register } = useAuth();
   const router = useRouter();
   const [error, setError] = useState(false);
   const [ButtonDisable, setButtonDisable] = useState(false);
-  const { register } = usecontext();
+
   const form = useForm({
     defaultValues: {
       username: "",

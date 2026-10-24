@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { usecontext } from "@/context/AuthProvider";
+import { useAuth } from "@/context/AuthProvider";
 import { toast } from "@/components/ui/toast";
 function page() {
   const router = useRouter();
   const [error, setError] = useState(false);
-  const { login } = usecontext();
+  const { login } = useAuth();
   const form = useForm({
     defaultValues: {
       email: "",

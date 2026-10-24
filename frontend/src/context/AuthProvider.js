@@ -1,5 +1,5 @@
 "use client";
-import api from "@/app/api/route";
+import api from "@/lib/api";
 import { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext(null);
@@ -49,6 +49,6 @@ export function UserProvider({ children }) {
   );
 }
 
-export const usecontext = () => {
+export const useAuth = () => {
   return useContext(UserContext);
 };
