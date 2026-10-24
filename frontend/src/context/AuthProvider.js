@@ -13,12 +13,17 @@ export function UserProvider({ children }) {
       try {
         const res = await api.get("/getUser");
         setUser(res.data.data);
-      } catch (error) {
-        setUser(null);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setUser(null); // logged-out, normal hai
+        } else {
+          console.error(err); // asli error
+        }
       } finally {
-        setLoading(false);
+        setLoading(false); // loading hamesha band karo
       }
     };
+
     getUser();
   }, []);
 
