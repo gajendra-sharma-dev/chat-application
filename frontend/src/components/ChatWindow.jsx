@@ -1,13 +1,9 @@
 "use client";
 
-import { useAuth } from "@/context/AuthProvider";
+import React from "react";
 
-export default function ChatWindow({ room }) {
-  const { user, loading } = useAuth();
-
-  return (
-    <>
-      <div>{room?._id}</div>
-    </>
-  );
+function ChatWindow() {
+  return <div>ChatWindow</div>;
 }
+
+export default ChatWindow;

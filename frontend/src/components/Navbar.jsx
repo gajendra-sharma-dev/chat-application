@@ -157,7 +157,7 @@ function Navbar() {
           Logout
         </button>
       </nav>
-      <ChatWindow room={room} />
+      <ChatWindow roomId={room?._id} />
     </>
   );
 }

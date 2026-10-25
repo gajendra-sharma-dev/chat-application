@@ -2,10 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 const app = express();
-import { Server } from "socket.io";
-const server = http.createServer(app);
-
-const io = new Server(server);
 
 app.use(
   cors({
@@ -13,23 +9,6 @@ app.use(
     credentials: true,
   }),
 );
-
-// Socket.IO connection handler
-io.on("connection", (socket) => {
-  console.log("A user connected");
-
-  // Handle new messages
-  socket.on("chat message", (msg) => {
-    console.log("Message received:", msg);
-    // Broadcast the message to all connected clients
-    io.emit("chat message", msg);
-  });
-
-  // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-  });
-});
 
 app.use(express.json({ limit: "16kb" })); // req.body se data max size  16kb. data json me hoga jo frontent se aayaga
 app.use(express.urlencoded({ extended: true, limit: "16kb" })); //yaha data html ke rup me aata hai usko samhe ke liye.

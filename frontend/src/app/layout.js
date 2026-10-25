@@ -3,6 +3,8 @@ import "./globals.css";
 import { UserProvider } from "../context/AuthProvider.js";
 import { Toaster } from "@/components/ui/toast";
 import Navbar from "@/components/Navbar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/app-sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,12 +27,17 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <UserProvider>
-        <body className="min-h-full flex flex-col">
-          {children}
-          <Toaster />
-        </body>
-      </UserProvider>
+      <SidebarProvider>
+        <AppSidebar />
+
+        <SidebarTrigger />
+        <UserProvider>
+          <body className="min-h-full flex flex-col">
+            {children}
+            <Toaster />
+          </body>
+        </UserProvider>
+      </SidebarProvider>
     </html>
   );
 }

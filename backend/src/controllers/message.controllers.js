@@ -35,7 +35,7 @@ const sendMessage = asynchandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "message sent successfully", message));
+    .json(new ApiResponse(200, message, "message sent successfully"));
 });
 
 const getMessages = asynchandler(async (req, res) => {
