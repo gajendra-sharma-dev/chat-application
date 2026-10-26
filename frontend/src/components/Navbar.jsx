@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
 import { toast } from "../components/ui/toast";
+import { useRoom } from "@/context/RoomProvider";
 import {
   Dialog,
   DialogClose,
@@ -20,14 +21,14 @@ import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import ChatWindow from "./ChatWindow";
 
-function Navbar() {
+function Navbar({ children }) {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [foundUser, setFoundUser] = useState(null);
   const [error, setError] = useState("");
-  const [room, setroom] = useState("");
+  const { room, setRoom } = useRoom();
 
   if (!user) {
     <div>user not found</div>;
@@ -66,14 +67,14 @@ function Navbar() {
 
   const UserIdyoRoom = async (userId) => {
     const res = await api.post("/createRoom", { userId });
-    setroom(res.data.data);
+    setRoom(res.data.data);
 
     console.log(res.data.data);
   };
 
   return (
     <>
-      <nav className="flex items-center justify-between bg-white px-6 py-3 shadow">
+      <nav className="flex w-full items-center justify-between bg-white px-6 py-3 shadow">
         {/* Logo */}
         <a
           href="/"
@@ -157,7 +158,6 @@ function Navbar() {
           Logout
         </button>
       </nav>
-      <ChatWindow roomId={room?._id} />
     </>
   );
 }

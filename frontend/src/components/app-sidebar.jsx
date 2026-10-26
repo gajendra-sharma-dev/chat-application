@@ -1,6 +1,26 @@
 "use client";
-import { ChevronsUpDown } from "lucide-react";
+import { useRoom } from "@/context/RoomProvider";
 import { Plus } from "lucide-react";
+import { ChevronsUpDown, LogOut, Bell, CreditCard } from "lucide-react";
+import { UsersRoundCollaboration } from "lucide-react";
+import { UserRoundPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldGroup } from "./ui/field";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import {
   Collapsible,
@@ -36,10 +56,24 @@ import {
 
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthProvider";
+import api from "@/lib/api";
 
 const projects = [
   { name: "add", url: "http:jhjh" },
@@ -50,56 +84,133 @@ const projects = [
 ];
 
 function AppSidebar() {
+  const { user, loading, logout } = useAuth();
+  const [room, setRoom] = useState([]);
+  console.log(room);
+  console.log(user);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    const getAllGroup = async () => {
+      const res = await api.get("/getallroom");
+      console.log(res.data.data);
+      setRoom(res.data.data);
+    };
+    getAllGroup();
+  }, []);
+
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<SidebarMenuButton />}>
-                Select Workspace
-                <ChevronsUpDown className="ml-auto" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <span>Acme Inc</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Dialog>
+              <form>
+                <DialogTrigger
+                  render={
+                    <SidebarMenuButton tooltip="create Group">
+                      <UsersRoundCollaboration />
+                      <span>Create Group</span>
+                    </SidebarMenuButton>
+                  }
+                />
+                <DialogContent className="sm:max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>Create Group</DialogTitle>
+                    <DialogDescription>
+                      Here you make a new group with your friends..
+                    </DialogDescription>
+                  </DialogHeader>
+                  <FieldGroup>
+                    <Field>
+                      <Label htmlFor="name-1">Group name</Label>
+                      <Input
+                        id="name-1"
+                        name="name"
+                        defaultValue="Pedro Duarte"
+                      />
+                    </Field>
+                    <Field>
+                      <Label htmlFor="username-1">Username</Label>
+                      <Input
+                        id="username-1"
+                        name="username"
+                        defaultValue="@peduarte"
+                      />
+                    </Field>
+                  </FieldGroup>
+                  <DialogFooter>
+                    <DialogClose
+                      render={<Button variant="outline">Cancel</Button>}
+                    />
+                    <Button type="submit">Save changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </form>
+            </Dialog>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {projects.map((project) => (
-            <SidebarMenuItem key={project.name}>
-              <SidebarMenuButton render={<a href={"/#"} />}>
-                <span>{project.name}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {room?.map((project) => {
+            const other = project.members.find((m) => m._id !== user?._id);
+            return (
+              <SidebarMenuItem key={other._id}>
+                <SidebarMenuButton render={<a href={"/#"} />}>
+                  <UserRoundPlus />
+                  <span>{other.username}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
-        <Collapsible defaultOpen className="group/collapsible">
-          <SidebarGroup>
-            <SidebarGroupLabel render={<CollapsibleTrigger />}>
-              Help
-              <ChevronsUpDown className="ml-auto transition-transform group-data-open/collapsible:rotate-180" />
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent />
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupAction>
-            <Plus /> <span className="sr-only">Add Project</span>
-          </SidebarGroupAction>
-          <SidebarGroupContent></SidebarGroupContent>
-        </SidebarGroup>
       </SidebarHeader>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>Username</SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton size="lg">
+                    <Avatar>
+                      <AvatarImage
+                        src="https://github.com/shadcn.png"
+                        alt="@shadcn"
+                        className="grayscale"
+                      />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">
+                        {user?.username}
+                      </span>
+                      <span className="truncate text-xs">{user?.email}</span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto mr-1" />
+                  </SidebarMenuButton>
+                }
+              ></DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                side="right"
+                align="end"
+                className="min-w-56 rounded-lg"
+              >
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <CreditCard /> profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bell /> Notifications
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
