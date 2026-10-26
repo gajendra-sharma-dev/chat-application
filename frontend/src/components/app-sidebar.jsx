@@ -85,6 +85,7 @@ const projects = [
 
 function AppSidebar() {
   const { user, loading, logout } = useAuth();
+  const [open, setOpen] = useState(false);
   const [room, setRoom] = useState([]);
   console.log(room);
   console.log(user);
@@ -99,7 +100,24 @@ function AppSidebar() {
       setRoom(res.data.data);
     };
     getAllGroup();
-  }, []);
+  }, [user?._id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name");
+    const description = formData.get("description");
+
+    try {
+      const res = await api.post("/createGroup", { name, description });
+      console.log(res.data);
+      // fetchRooms();   // sidebar list refresh (agar context mein hai)
+      // dialog band
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -107,7 +125,7 @@ function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <Dialog>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <DialogTrigger
                   render={
                     <SidebarMenuButton tooltip="create Group">
