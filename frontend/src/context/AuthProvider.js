@@ -18,6 +18,7 @@ export function UserProvider({ children }) {
           setUser(null); // logged-out, normal hai
         } else {
           console.error(err); // asli error
+          setUser(null);
         }
       } finally {
         setLoading(false); // loading hamesha band karo
