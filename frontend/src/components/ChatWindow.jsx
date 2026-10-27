@@ -12,6 +12,12 @@ export function ChatWindow({ roomId, currentUserId }) {
   const [text, setText] = useState("");
   const bottomRef = useRef(null);
 
+  const formatTime = (date) =>
+    new Date(date).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
   // 1. Get messages of this room
   const getMessages = async () => {
     try {
@@ -79,6 +85,9 @@ export function ChatWindow({ roomId, currentUserId }) {
                     </p>
                   )}
                   <p className="break-words whitespace-pre-wrap">{msg.text}</p>
+                  <p className="mt-1 text-right text-[10px] opacity-60">
+                    {formatTime(msg.createdAt)}
+                  </p>
                 </div>
               </div>
             );

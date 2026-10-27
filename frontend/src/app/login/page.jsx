@@ -32,6 +32,7 @@ function page() {
       console.log(error);
       console.log(error?.response);
       console.log(error?.response?.data?.error);
+      toast.add({ title: "error", description: "Login failed" });
     }
   };
 

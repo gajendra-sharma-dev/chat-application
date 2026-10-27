@@ -109,7 +109,7 @@ function AppSidebar() {
     console.log(e);
 
     e.preventDefault();
-    99;
+
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name");
     const description = formData.get("description");
@@ -230,7 +230,7 @@ function AppSidebar() {
               >
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <CreditCard /> profile
+                    <CreditCard /> <Link href="/profile">profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Bell /> Notifications

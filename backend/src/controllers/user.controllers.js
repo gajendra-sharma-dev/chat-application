@@ -174,11 +174,11 @@ const updatePassword = asynchandler(async (req, res) => {
   const { oldpassword, newpassword } = req.body;
 
   if (!oldpassword) {
-    throw new ApiError("old password is required");
+    throw new ApiError(400, "old password is required");
   }
 
   if (!newpassword) {
-    throw new ApiError("new password is required");
+    throw new ApiError(400, "new password is required");
   }
 
   const user = await User.findById(req.user?._id);
@@ -186,7 +186,7 @@ const updatePassword = asynchandler(async (req, res) => {
   const passwordiscorrect = await user.passwordCorrect(oldpassword);
 
   if (!passwordiscorrect) {
-    throw new ApiError(400, "password is incorrect");
+    throw new ApiError(400, "old password is incorrect");
   }
   user.password = newpassword;
 
@@ -201,7 +201,14 @@ const UpdateUserDetail = asynchandler(async (req, res) => {
   if ([username, email].some((filed) => filed.trim() === "")) {
     throw new ApiError(400, "all filed is required");
   }
+  const exists = await User.findOne({
+    _id: { $ne: req.user._id }, // apne aap ko chhod do
+    $or: [{ username }, { email }],
+  });
 
+  if (exists) {
+    throw new ApiError(409, "username or email already taken");
+  }
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     { $set: { username, email } },
