@@ -74,6 +74,7 @@ import {
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import api from "@/lib/api";
+import Link from "next/link";
 
 const projects = [
   { name: "add", url: "http:jhjh" },
@@ -87,6 +88,8 @@ function AppSidebar() {
   const { user, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [room, setRoom] = useState([]);
+  const [name, setname] = useState("");
+  const [text, setText] = useState("");
   console.log(room);
   console.log(user);
 
@@ -103,15 +106,17 @@ function AppSidebar() {
   }, [user?._id]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    console.log(e);
 
+    e.preventDefault();
+    99;
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name");
     const description = formData.get("description");
 
     try {
       const res = await api.post("/createGroup", { name, description });
-      console.log(res.data);
+      console.log(res.data.data);
       // fetchRooms();   // sidebar list refresh (agar context mein hai)
       // dialog band
     } catch (err) {
@@ -146,16 +151,20 @@ function AppSidebar() {
                       <Label htmlFor="name-1">Group name</Label>
                       <Input
                         id="name-1"
-                        name="name"
-                        defaultValue="Pedro Duarte"
+                        name="text"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        // defaultValue="Pedro Duarte"
                       />
                     </Field>
                     <Field>
                       <Label htmlFor="username-1">Username</Label>
                       <Input
                         id="username-1"
-                        name="username"
-                        defaultValue="@peduarte"
+                        name="name"
+                        value={name}
+                        onChange={(e) => setname(e.target.value)}
+                        // defaultValue="@peduarte"
                       />
                     </Field>
                   </FieldGroup>
@@ -163,7 +172,9 @@ function AppSidebar() {
                     <DialogClose
                       render={<Button variant="outline">Cancel</Button>}
                     />
-                    <Button type="submit">Save changes</Button>
+                    <Button type="submit" onClick={() => onButton()}>
+                      Save changes
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </form>
@@ -171,11 +182,13 @@ function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {room?.map((project) => {
+          {room.map((project) => {
             const other = project.members.find((m) => m._id !== user?._id);
             return (
-              <SidebarMenuItem key={other._id}>
-                <SidebarMenuButton render={<a href={"/#"} />}>
+              <SidebarMenuItem key={project._id}>
+                <SidebarMenuButton
+                  render={<Link href={`/chat/${project._id}`} />}
+                >
                   <UserRoundPlus />
                   <span>{other.username}</span>
                 </SidebarMenuButton>

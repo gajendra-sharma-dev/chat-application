@@ -1,9 +1,104 @@
 "use client";
 
-import React from "react";
+import { useEffect, useRef, useState } from "react";
+import { SendHorizonal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import api from "@/lib/api"; // the same api (axios) instance you use in the sidebar
 
-function ChatWindow() {
-  return <div>ChatWindow</div>;
+export function ChatWindow({ roomId, currentUserId }) {
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const bottomRef = useRef(null);
+
+  // 1. Get messages of this room
+  const getMessages = async () => {
+    try {
+      const res = await api.get(`/message/${roomId}`);
+      setMessages(res.data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // 2. Send a message to this room
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    const value = text.trim();
+    if (!value) return;
+
+    setText("");
+    try {
+      const res = await api.post(`/message/${roomId}`, { text: value });
+      setMessages((prev) => [...prev, res.data.data]);
+    } catch (err) {
+      console.log(err);
+      setText(value); // restore the text if it failed
+    }
+  };
+
+  // load messages whenever the room changes
+  useEffect(() => {
+    if (!roomId) return;
+    setMessages([]);
+    getMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
+
+  // scroll to the bottom on a new message
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  return (
+    <div className="flex h-screen flex-col">
+      {/* messages */}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="flex flex-col gap-2">
+          {messages.map((msg) => {
+            const isMe = msg.senderId?._id === currentUserId;
+
+            return (
+              <div
+                key={msg._id}
+                className={cn("flex", isMe ? "justify-end" : "justify-start")}
+              >
+                <div
+                  className={cn(
+                    "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                    isMe
+                      ? "rounded-br-sm bg-primary text-primary-foreground"
+                      : "rounded-bl-sm bg-muted",
+                  )}
+                >
+                  {!isMe && (
+                    <p className="mb-0.5 text-xs font-medium opacity-70">
+                      {msg.senderId?.username}
+                    </p>
+                  )}
+                  <p className="break-words whitespace-pre-wrap">{msg.text}</p>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      {/* input */}
+      <form onSubmit={sendMessage} className="flex gap-2 border-t p-3">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message..."
+          autoComplete="off"
+        />
+        <Button type="submit" size="icon" disabled={!text.trim()}>
+          <SendHorizonal className="size-4" />
+        </Button>
+      </form>
+    </div>
+  );
 }
-
-export default ChatWindow;
