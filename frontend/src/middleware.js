@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
 export function middleware(request) {
+  console.log(request.nextUrl);
+
   const path = request.nextUrl.pathname;
-  const token = request.cookies.get("token")?.value; // asli cookie naam likho
+  const token = request.cookies.get("accessToken")?.value; // asli cookie naam likho
 
   console.log("MIDDLEWARE:", path, "token:", !!token);
 
