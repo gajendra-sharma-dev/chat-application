@@ -13,6 +13,15 @@ const nextConfig = {
       },
     },
   },
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://chat-application-g534.onrender.com/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
