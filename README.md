@@ -108,6 +108,3 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 2. Turn on device mode (`Ctrl/Cmd + Shift + M`).
 3. Check these widths: `375px` (mobile), `768px` (tablet), `1280px` (laptop).
 
-## License
-
-MIT
