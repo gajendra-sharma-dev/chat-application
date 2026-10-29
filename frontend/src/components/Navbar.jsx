@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
-import { toast } from "../components/ui/toast";
+
 import { useRoom } from "@/context/RoomProvider";
 import {
   Dialog,
@@ -19,20 +19,20 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
-import ChatWindow from "./ChatWindow";
 
 function Navbar({ children }) {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
-  const [foundUser, setFoundUser] = useState(null);
+  const [foundUser, setFoundUser] = useState([]);
   const [error, setError] = useState("");
   const { room, setRoom } = useRoom();
 
-  if (!user) {
-    <div>user not found</div>;
-  }
+  useEffect(() => {
+    router.replace("/login");
+  }, [user._id, loading]);
+
   const clearText = () => {
     setUsername("");
   };
@@ -47,7 +47,6 @@ function Navbar({ children }) {
     try {
       const res = await api.get(`/search?q=${username.trim()}`);
       const result = res.data.data;
-      console.log(res.data.data);
 
       {
         result && result?.length === 0 && setError("user not found");
@@ -56,7 +55,6 @@ function Navbar({ children }) {
       setFoundUser(res.data.data); // user object from your API
     } catch (error) {
       setError(error.response?.data?.errors || error?.response?.data?.message);
-      console.log(error);
     }
   };
 
@@ -68,8 +66,6 @@ function Navbar({ children }) {
   const UserIdyoRoom = async (userId) => {
     const res = await api.post("/createRoom", { userId });
     setRoom(res.data.data);
-
-    console.log(res.data.data);
   };
 
   return (

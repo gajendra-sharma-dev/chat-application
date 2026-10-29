@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import Link from "next/link";
+import { toast } from "@/components/ui/toast";
 
 export function ChatWindow({ roomId, currentUserId }) {
   const [messages, setMessages] = useState([]);
@@ -24,7 +25,7 @@ export function ChatWindow({ roomId, currentUserId }) {
       const res = await api.get(`/message/${roomId}`);
       setMessages(res.data.data);
     } catch (err) {
-      console.log(err);
+      toast.add({ title: "error", description: "can not send message" });
     }
   };
 
@@ -39,7 +40,7 @@ export function ChatWindow({ roomId, currentUserId }) {
       const res = await api.post(`/message/${roomId}`, { text: value });
       setMessages((prev) => [...prev, res.data.data]);
     } catch (err) {
-      console.log(err);
+      toast.add({ title: "error", description: "can not get a message" });
       setText(value);
     }
   };
