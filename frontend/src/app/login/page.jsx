@@ -38,7 +38,7 @@ function page() {
 
   return (
     <>
-      <div className="flex min-h-screen items-center justify-cent">
+      <div className="flex min-h-screen items-center justify-center">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full max-w-md space-y-6 rounded-lg border p-8"
