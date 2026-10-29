@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthProvider";
@@ -20,21 +21,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 
-function Navbar({ children }) {
+// Backend ka error string ya array, dono ko ek string bana deta hai
+const getErrorMessage = (err) => {
+  const msg = err?.response?.data?.errors || err?.response?.data?.message;
+  if (Array.isArray(msg)) return msg.join(", ");
+  return msg || "Something went wrong";
+};
+
+function Navbar() {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
+  const { setRoom } = useRoom();
+
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
-  const [foundUser, setFoundUser] = useState([]);
+  // null = abhi search hi nahi hua, [] = search hua par koi nahi mila
+  const [foundUser, setFoundUser] = useState(null);
   const [error, setError] = useState("");
-  const { room, setRoom } = useRoom();
+  const [searching, setSearching] = useState(false);
 
+  // Sirf tab login par bhejo jab loading khatam ho aur user na ho
   useEffect(() => {
-    router.replace("/login");
-  }, [user, loading]);
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
 
-  const clearText = () => {
+  const resetSearch = () => {
     setUsername("");
+    setFoundUser(null);
+    setError("");
+  };
+
+  const handleOpenChange = (value) => {
+    setOpen(value);
+    if (!value) resetSearch(); // dialog band hone par sab clear
   };
 
   const handlerSubmit = async (e) => {
@@ -42,19 +63,22 @@ function Navbar({ children }) {
     setError("");
     setFoundUser(null);
 
-    if (!username.trim()) return;
+    const query = username.trim();
+    if (!query) return;
 
     try {
-      const res = await api.get(`/search?q=${username.trim()}`);
+      setSearching(true);
+      const res = await api.get(`/search?q=${encodeURIComponent(query)}`);
       const result = res.data.data;
 
-      {
-        result && result?.length === 0 && setError("user not found");
-      }
+      // Backend array de ya single object, dono handle
+      const users = Array.isArray(result) ? result : result ? [result] : [];
 
-      setFoundUser(res.data.data); // user object from your API
-    } catch (error) {
-      setError(error.response?.data?.errors || error?.response?.data?.message);
+      setFoundUser(users); // khali array hua to neeche "user not found" dikhega
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -63,16 +87,22 @@ function Navbar({ children }) {
     router.replace("/login");
   };
 
-  const UserIdyoRoom = async (userId) => {
-    const res = await api.post("/createRoom", { userId });
-    setRoom(res.data.data);
+  const startChat = async (userId) => {
+    try {
+      setError("");
+      const res = await api.post("/createRoom", { userId });
+      setRoom(res.data.data);
+      handleOpenChange(false);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
   };
 
   return (
     <>
       <nav className="flex w-full items-center justify-between bg-white px-6 py-3 shadow">
         {/* Logo */}
-        <a
+        <Link
           href="/"
           className="flex items-center gap-2 text-xl font-bold text-indigo-600"
         >
@@ -80,10 +110,10 @@ function Navbar({ children }) {
             <path d="M4 2h16a2 2 0 012 2v12a2 2 0 01-2 2H7l-5 4V4a2 2 0 012-2z" />
           </svg>
           ChatApp
-        </a>
+        </Link>
 
         {/* Search dialog */}
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger
             render={<Button variant="outline">Search User</Button>}
           />
@@ -110,36 +140,41 @@ function Navbar({ children }) {
               </FieldGroup>
 
               {/* Search result */}
-              {/* Search result */}
-              {foundUser &&
-                (foundUser.length > 0 ? (
-                  foundUser.map((user) => (
-                    <div
-                      key={user._id}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <span className="font-medium">{user.username}</span>
-                      <Button
-                        type="submit"
-                        onClick={() => UserIdyoRoom(user._id)}
-                      >
-                        {" "}
-                        Chat
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-red-500">user not found</p>
+              {foundUser?.length > 0 &&
+                foundUser.map((u) => (
+                  <div
+                    key={u._id}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <span className="font-medium">{u.username}</span>
+                    {/* type="button" zaroori hai, warna form dobara submit ho jata hai */}
+                    <Button type="button" onClick={() => startChat(u._id)}>
+                      Chat
+                    </Button>
+                  </div>
                 ))}
+
+              {foundUser?.length === 0 && !error && (
+                <p className="text-sm text-red-500">User not found</p>
+              )}
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
               <DialogFooter>
                 <DialogClose
                   render={
-                    <Button type="button" variant="outline" onClick={clearText}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetSearch}
+                    >
                       Cancel
                     </Button>
                   }
                 />
-                <Button type="submit">Search</Button>
+                <Button type="submit" disabled={searching}>
+                  {searching ? "Searching..." : "Search"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
