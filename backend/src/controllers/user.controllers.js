@@ -46,7 +46,7 @@ const registerUser = asynchandler(async (req, res) => {
     createNewUser._id,
   );
 
-  const options = { httpOnly: true, secure: true };
+  const options = { httpOnly: true, secure: true, sameSite: "none" };
 
   return res
     .status(200)
@@ -83,7 +83,7 @@ const loginUser = asynchandler(async (req, res) => {
     user._id,
   );
 
-  const options = { httpOnly: true, secure: true };
+  const options = { httpOnly: true, secure: true, sameSite: "none" };
 
   return res
     .status(200)
@@ -104,7 +104,7 @@ const logout = asynchandler(async (req, res) => {
     { $unset: { refreshToken: 1 } },
     { new: true },
   );
-  const options = { httpOnly: true, secure: true };
+  const options = { httpOnly: true, secure: true, sameSite: "none" };
 
   return res
     .status(200)
@@ -148,6 +148,7 @@ const refreshAccessToken = asynchandler(async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: "none",
     };
 
     const { accessToken, refreshToken } = await generateAccessANDRefreshToken(
