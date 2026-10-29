@@ -31,7 +31,7 @@ function Navbar({ children }) {
 
   useEffect(() => {
     router.replace("/login");
-  }, [user._id, loading]);
+  }, [user, loading]);
 
   const clearText = () => {
     setUsername("");
