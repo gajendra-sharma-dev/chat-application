@@ -28,12 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import {
   Sidebar,
+  SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -50,6 +52,8 @@ function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  // Mobile par sidebar sheet hota hai, uska state yahan se milta hai
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const [rooms, setRooms] = useState([]);
   const [open, setOpen] = useState(false);
@@ -136,6 +140,7 @@ function AppSidebar() {
       setRooms((prev) => [newRoom, ...prev]); // sidebar me turant dikhe
       setOpen(false);
       resetDialog();
+      setOpenMobile(false);
       router.push(`/chat/${newRoom._id}`);
     } catch (err) {
       setError(getErrorMessage(err, "room not create yet"));
@@ -191,7 +196,8 @@ function AppSidebar() {
                 }
               />
 
-              <DialogContent className="sm:max-w-sm">
+              {/* Mobile: screen ke andar, scrollable. Tablet+: fixed width */}
+              <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-sm md:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Create Group</DialogTitle>
                   <DialogDescription>
@@ -206,6 +212,7 @@ function AppSidebar() {
                       id="group-name"
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
+                      className="text-base sm:text-sm" // iOS zoom rokne ke liye
                     />
                   </Field>
 
@@ -217,6 +224,7 @@ function AppSidebar() {
                         placeholder="Search username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        className="min-w-0 flex-1 text-base sm:text-sm"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -224,25 +232,30 @@ function AppSidebar() {
                           }
                         }}
                       />
-                      <Button type="button" onClick={handleMemberSearch}>
+                      <Button
+                        type="button"
+                        className="shrink-0"
+                        onClick={handleMemberSearch}
+                      >
                         Search
                       </Button>
                     </div>
 
                     {searchResults.length > 0 && (
-                      <ul className="mt-2 max-h-32 overflow-y-auto rounded-md border">
+                      <ul className="mt-2 max-h-32 overflow-y-auto rounded-md border sm:max-h-40">
                         {searchResults.map((u) => {
                           const added = members.some((m) => m._id === u._id);
                           return (
                             <li
                               key={u._id}
-                              className="flex items-center justify-between px-3 py-2 text-sm"
+                              className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
                             >
-                              <span>{u.username}</span>
+                              <span className="truncate">{u.username}</span>
                               <Button
                                 type="button"
                                 size="sm"
                                 variant="outline"
+                                className="shrink-0"
                                 disabled={added}
                                 onClick={() => addMember(u)}
                               >
@@ -256,15 +269,17 @@ function AppSidebar() {
                   </Field>
 
                   {members.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex max-h-24 flex-wrap gap-2 overflow-y-auto">
                       {members.map((m) => (
                         <span
                           key={m._id}
-                          className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs"
+                          className="flex max-w-full items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs"
                         >
-                          {m.username}
+                          <span className="truncate">{m.username}</span>
                           <button
                             type="button"
+                            aria-label={`Remove ${m.username}`}
+                            className="px-1"
                             onClick={() => removeMember(m._id)}
                           >
                             ×
@@ -277,12 +292,17 @@ function AppSidebar() {
                   {error && <p className="text-sm text-red-500">{error}</p>}
                 </FieldGroup>
 
-                <DialogFooter>
+                <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
                   <DialogClose
-                    render={<Button variant="outline">Cancel</Button>}
+                    render={
+                      <Button variant="outline" className="w-full sm:w-auto">
+                        Cancel
+                      </Button>
+                    }
                   />
                   <Button
                     type="button"
+                    className="w-full sm:w-auto"
                     onClick={handleCreateGroup}
                     disabled={creating}
                   >
@@ -293,22 +313,31 @@ function AppSidebar() {
             </Dialog>
           </SidebarMenuItem>
         </SidebarMenu>
+      </SidebarHeader>
 
-        <SidebarMenu>
+      {/* Rooms list ab apne scroll area me hai, isliye lambi list footer ko nahi dabayegi */}
+      <SidebarContent>
+        <SidebarMenu className="px-2">
           {rooms.map((room) => (
             <SidebarMenuItem key={room._id}>
               <SidebarMenuButton
                 tooltip={getRoomName(room)}
                 isActive={pathname === `/chat/${room._id}`}
-                render={<Link href={`/chat/${room._id}`} />}
+                render={
+                  <Link
+                    href={`/chat/${room._id}`}
+                    onClick={() => setOpenMobile(false)} // mobile par chat khulte hi sidebar band
+                  />
+                }
               >
                 {room.isGroup ? <UsersRoundCollaboration /> : <UserRoundPlus />}
-                <span>{getRoomName(room)}</span>
+                <span className="truncate">{getRoomName(room)}</span>
               </SidebarMenuButton>
 
               {room.isGroup && (
                 <SidebarMenuAction
                   title="Leave group"
+                  aria-label="Leave group"
                   disabled={leavingId === room._id}
                   onClick={() => handleLeave(room._id)}
                 >
@@ -318,7 +347,7 @@ function AppSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarHeader>
+      </SidebarContent>
 
       <SidebarFooter>
         <SidebarMenu>
@@ -346,10 +375,11 @@ function AppSidebar() {
                 }
               />
 
+              {/* Mobile par right side screen ke bahar jaata hai, isliye upar kholo */}
               <DropdownMenuContent
-                side="right"
+                side={isMobile ? "top" : "right"}
                 align="end"
-                className="min-w-56 rounded-lg"
+                className="w-56 min-w-56 max-w-[calc(100vw-2rem)] rounded-lg"
               >
                 <DropdownMenuGroup>
                   <DropdownMenuItem render={<Link href="/profile" />}>

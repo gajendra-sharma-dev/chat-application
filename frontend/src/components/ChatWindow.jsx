@@ -25,7 +25,7 @@ export function ChatWindow({ roomId, currentUserId }) {
       const res = await api.get(`/message/${roomId}`);
       setMessages(res.data.data);
     } catch (err) {
-      toast.add({ title: "error", description: "can not send message" });
+      toast.add({ title: "error", description: "can not get messages" });
     }
   };
 
@@ -40,7 +40,7 @@ export function ChatWindow({ roomId, currentUserId }) {
       const res = await api.post(`/message/${roomId}`, { text: value });
       setMessages((prev) => [...prev, res.data.data]);
     } catch (err) {
-      toast.add({ title: "error", description: "can not get a message" });
+      toast.add({ title: "error", description: "can not send message" });
       setText(value);
     }
   };
@@ -56,16 +56,19 @@ export function ChatWindow({ roomId, currentUserId }) {
   }, [messages]);
 
   return (
-    <div className="flex h-screen flex-col">
-      <Link
-        href="/dashboard"
-        className="rounded-md border px-3 py-1 text-sm hover:bg-gray-100"
-      >
-        ← Back
-      </Link>
+    <div className="flex h-dvh flex-col">
+      <header className="flex items-center border-b px-3 py-2 sm:px-4 sm:py-3">
+        <Link
+          href="/dashboard"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-100"
+        >
+          ← Back
+        </Link>
+      </header>
+
       {/* messages */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="flex flex-col gap-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
           {messages.map((msg) => {
             const isMe = msg.senderId?._id === currentUserId;
 
@@ -76,7 +79,7 @@ export function ChatWindow({ roomId, currentUserId }) {
               >
                 <div
                   className={cn(
-                    "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[75%] lg:max-w-[65%]",
                     isMe
                       ? "rounded-br-sm bg-primary text-primary-foreground"
                       : "rounded-bl-sm bg-muted",
@@ -87,7 +90,9 @@ export function ChatWindow({ roomId, currentUserId }) {
                       {msg.senderId?.username}
                     </p>
                   )}
-                  <p className="break-words whitespace-pre-wrap">{msg.text}</p>
+                  <p className="break-words whitespace-pre-wrap [overflow-wrap:anywhere]">
+                    {msg.text}
+                  </p>
                   <p className="mt-1 text-right text-[10px] opacity-60">
                     {formatTime(msg.createdAt)}
                   </p>
@@ -99,17 +104,29 @@ export function ChatWindow({ roomId, currentUserId }) {
         </div>
       </div>
 
-      {/* input */}
-      <form onSubmit={sendMessage} className="flex gap-2 border-t p-3">
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          autoComplete="off"
-        />
-        <Button type="submit" size="icon" disabled={!text.trim()}>
-          <SendHorizonal className="size-4" />
-        </Button>
+      {/* input: iPhone ke home bar ke liye safe-area padding */}
+      <form
+        onSubmit={sendMessage}
+        className="border-t px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 lg:px-6"
+      >
+        <div className="mx-auto flex w-full max-w-3xl gap-2">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+            autoComplete="off"
+            className="min-w-0 flex-1 text-base sm:text-sm"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="shrink-0"
+            aria-label="Send message"
+            disabled={!text.trim()}
+          >
+            <SendHorizonal className="size-4" />
+          </Button>
+        </div>
       </form>
     </div>
   );
