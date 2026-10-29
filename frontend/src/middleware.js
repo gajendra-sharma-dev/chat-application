@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 
 export function middleware(request) {
-  console.log(request.nextUrl);
-
   const path = request.nextUrl.pathname;
-  const token = request.cookies.get("accessToken")?.value; // asli cookie naam likho
-
-  console.log("MIDDLEWARE:", path, "token:", !!token);
+  const token = request.cookies.get("accessToken")?.value;
 
   const isAuthPage = path === "/login" || path === "/sign-up";
 

@@ -139,7 +139,7 @@ function page() {
               </Button>
             </Link>
 
-            <Button type="submit">Submit</Button>
+            <Button type="submit">Update</Button>
           </Field>
         </FieldGroup>
       </form>

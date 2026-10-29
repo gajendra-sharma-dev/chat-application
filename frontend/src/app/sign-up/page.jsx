@@ -41,7 +41,7 @@ function page() {
 
   return (
     <>
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-700">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full max-w-md space-y-6 rounded-lg border p-8"

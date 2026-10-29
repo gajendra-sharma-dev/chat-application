@@ -5,7 +5,8 @@ import { SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import api from "@/lib/api"; // the same api (axios) instance you use in the sidebar
+import api from "@/lib/api";
+import Link from "next/link";
 
 export function ChatWindow({ roomId, currentUserId }) {
   const [messages, setMessages] = useState([]);
@@ -18,7 +19,6 @@ export function ChatWindow({ roomId, currentUserId }) {
       minute: "2-digit",
     });
 
-  // 1. Get messages of this room
   const getMessages = async () => {
     try {
       const res = await api.get(`/message/${roomId}`);
@@ -28,7 +28,6 @@ export function ChatWindow({ roomId, currentUserId }) {
     }
   };
 
-  // 2. Send a message to this room
   const sendMessage = async (e) => {
     e.preventDefault();
 
@@ -41,25 +40,28 @@ export function ChatWindow({ roomId, currentUserId }) {
       setMessages((prev) => [...prev, res.data.data]);
     } catch (err) {
       console.log(err);
-      setText(value); // restore the text if it failed
+      setText(value);
     }
   };
 
-  // load messages whenever the room changes
   useEffect(() => {
     if (!roomId) return;
     setMessages([]);
     getMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  // scroll to the bottom on a new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
     <div className="flex h-screen flex-col">
+      <Link
+        href="/dashboard"
+        className="rounded-md border px-3 py-1 text-sm hover:bg-gray-100"
+      >
+        ← Back
+      </Link>
       {/* messages */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <div className="flex flex-col gap-2">

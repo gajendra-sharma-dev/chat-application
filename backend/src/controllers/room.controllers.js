@@ -162,7 +162,7 @@ const leaveRoom = asynchandler(async (req, res) => {
   }
   await Room.updateOne({ _id: roomId }, { $pull: { members: req.user?._id } });
 
-  return res.status(200).json(new ApiResponse(200, "you left the group"));
+  return res.status(200).json(new ApiResponse(200, null, "you left the group"));
 });
 
 export {

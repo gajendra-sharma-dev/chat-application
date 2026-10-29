@@ -1,9 +1,16 @@
 "use client";
-import { useRoom } from "@/context/RoomProvider";
-import { Plus } from "lucide-react";
-import { ChevronsUpDown, LogOut, Bell, CreditCard } from "lucide-react";
-import { UsersRoundCollaboration } from "lucide-react";
-import { UserRoundPlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  ChevronsUpDown,
+  LogOut,
+  CreditCard,
+  CircleQuestionMark,
+  UserRoundPlus,
+  UsersRoundCollaboration,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup } from "./ui/field";
 import { Label } from "./ui/label";
@@ -16,112 +23,151 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
 import {
   Sidebar,
-  SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarInput,
-  SidebarInset,
   SidebarMenu,
   SidebarMenuAction,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarSeparator,
-  SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
-
 import {
   DropdownMenu,
-  DropdownMenuPortal,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import api from "@/lib/api";
-import Link from "next/link";
-
-const projects = [
-  { name: "add", url: "http:jhjh" },
-  { name: "home", url: "localkkjg" },
-  { name: "addss", url: "http:jhjh" },
-  { name: "addfff", url: "http:jhjh" },
-  { name: "addfgg", url: "http:jhjh" },
-];
 
 function AppSidebar() {
-  const { user, loading, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const [rooms, setRooms] = useState([]);
   const [open, setOpen] = useState(false);
-  const [room, setRoom] = useState([]);
-  const [name, setname] = useState("");
-  const [text, setText] = useState("");
-  console.log(room);
-  console.log(user);
+  const [leavingId, setLeavingId] = useState(null);
+
+  const [groupName, setGroupName] = useState("");
+  const [username, setUsername] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const getErrorMessage = (err, fallback) =>
+    err?.response?.data?.errors?.toString() ||
+    err?.response?.data?.message ||
+    fallback;
+
+  const fetchRooms = async () => {
+    try {
+      const res = await api.get("/getallroom");
+      setRooms(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-    const getAllGroup = async () => {
-      const res = await api.get("/getallroom");
-      console.log(res.data.data);
-      setRoom(res.data.data);
-    };
-    getAllGroup();
+    if (!user?._id) return;
+    fetchRooms();
   }, [user?._id]);
 
-  const handleSubmit = async (e) => {
-    console.log(e);
+  const resetDialog = () => {
+    setGroupName("");
+    setUsername("");
+    setSearchResults([]);
+    setMembers([]);
+    setError("");
+  };
 
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name");
-    const description = formData.get("description");
+  const handleMemberSearch = async () => {
+    const q = username.trim();
+    if (!q) return;
+    setError("");
 
     try {
-      const res = await api.post("/createGroup", { name, description });
-      console.log(res.data.data);
-      // fetchRooms();   // sidebar list refresh (agar context mein hai)
-      // dialog band
+      const res = await api.get(`/search?q=${encodeURIComponent(q)}`);
+      const result = res.data.data;
+
+      if (!result || result.length === 0) {
+        setSearchResults([]);
+        setError("user not found");
+        return;
+      }
+      setSearchResults(Array.isArray(result) ? result : [result]);
     } catch (err) {
-      console.log(err);
+      setError(getErrorMessage(err, "something went wrong"));
     }
+  };
+
+  const addMember = (u) => {
+    if (u._id === user?._id) return;
+    if (members.some((m) => m._id === u._id)) return;
+    setMembers((prev) => [...prev, u]);
+  };
+
+  const removeMember = (id) =>
+    setMembers((prev) => prev.filter((m) => m._id !== id));
+
+  const handleCreateGroup = async () => {
+    if (!groupName.trim()) return setError("group name is required");
+    if (members.length < 1) return setError("add at least one member");
+
+    try {
+      setCreating(true);
+      setError("");
+
+      const res = await api.post("/createGroup", {
+        name: groupName.trim(),
+        members: members.map((m) => m._id),
+      });
+
+      const newRoom = res.data.data;
+
+      setRooms((prev) => [newRoom, ...prev]); // sidebar me turant dikhe
+      setOpen(false);
+      resetDialog();
+      router.push(`/chat/${newRoom._id}`);
+    } catch (err) {
+      setError(getErrorMessage(err, "room not create yet"));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleLeave = async (roomId) => {
+    if (!window.confirm("you want to leave this group?")) return;
+
+    try {
+      setLeavingId(roomId);
+      await api.patch(`/${roomId}`);
+
+      setRooms((prev) => prev.filter((r) => r._id !== roomId));
+
+      if (pathname === `/chat/${roomId}`) {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.log(err?.response?.data);
+      alert(getErrorMessage(err, "can not leave"));
+    } finally {
+      setLeavingId(null);
+    }
+  };
+
+  const getRoomName = (room) => {
+    if (room.isGroup && room.name) return room.name;
+    const other = room.members?.find((m) => m._id !== user?._id);
+    return other?.username || room.name || "Unknown";
   };
 
   return (
@@ -129,74 +175,151 @@ function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Dialog>
-              <form onSubmit={handleSubmit}>
-                <DialogTrigger
-                  render={
-                    <SidebarMenuButton tooltip="create Group">
-                      <UsersRoundCollaboration />
-                      <span>Create Group</span>
-                    </SidebarMenuButton>
-                  }
-                />
-                <DialogContent className="sm:max-w-sm">
-                  <DialogHeader>
-                    <DialogTitle>Create Group</DialogTitle>
-                    <DialogDescription>
-                      Here you make a new group with your friends..
-                    </DialogDescription>
-                  </DialogHeader>
-                  <FieldGroup>
-                    <Field>
-                      <Label htmlFor="name-1">Group name</Label>
-                      <Input
-                        id="name-1"
-                        name="text"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        // defaultValue="Pedro Duarte"
-                      />
-                    </Field>
-                    <Field>
-                      <Label htmlFor="username-1">Username</Label>
-                      <Input
-                        id="username-1"
-                        name="name"
-                        value={name}
-                        onChange={(e) => setname(e.target.value)}
-                        // defaultValue="@peduarte"
-                      />
-                    </Field>
-                  </FieldGroup>
-                  <DialogFooter>
-                    <DialogClose
-                      render={<Button variant="outline">Cancel</Button>}
+            <Dialog
+              open={open}
+              onOpenChange={(v) => {
+                setOpen(v);
+                if (!v) resetDialog();
+              }}
+            >
+              <DialogTrigger
+                render={
+                  <SidebarMenuButton tooltip="Create Group">
+                    <UsersRoundCollaboration />
+                    <span>Create Group</span>
+                  </SidebarMenuButton>
+                }
+              />
+
+              <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Create Group</DialogTitle>
+                  <DialogDescription>
+                    Here you make a new group with your friends..
+                  </DialogDescription>
+                </DialogHeader>
+
+                <FieldGroup>
+                  <Field>
+                    <Label htmlFor="group-name">Group name</Label>
+                    <Input
+                      id="group-name"
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
                     />
-                    <Button type="submit" onClick={() => onButton()}>
-                      Save changes
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </form>
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="member-search">Add members</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="member-search"
+                        placeholder="Search username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleMemberSearch();
+                          }
+                        }}
+                      />
+                      <Button type="button" onClick={handleMemberSearch}>
+                        Search
+                      </Button>
+                    </div>
+
+                    {searchResults.length > 0 && (
+                      <ul className="mt-2 max-h-32 overflow-y-auto rounded-md border">
+                        {searchResults.map((u) => {
+                          const added = members.some((m) => m._id === u._id);
+                          return (
+                            <li
+                              key={u._id}
+                              className="flex items-center justify-between px-3 py-2 text-sm"
+                            >
+                              <span>{u.username}</span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={added}
+                                onClick={() => addMember(u)}
+                              >
+                                {added ? "Added" : "Add"}
+                              </Button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </Field>
+
+                  {members.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {members.map((m) => (
+                        <span
+                          key={m._id}
+                          className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs"
+                        >
+                          {m.username}
+                          <button
+                            type="button"
+                            onClick={() => removeMember(m._id)}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {error && <p className="text-sm text-red-500">{error}</p>}
+                </FieldGroup>
+
+                <DialogFooter>
+                  <DialogClose
+                    render={<Button variant="outline">Cancel</Button>}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleCreateGroup}
+                    disabled={creating}
+                  >
+                    {creating ? "Creating..." : "Create Group"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
           </SidebarMenuItem>
         </SidebarMenu>
+
         <SidebarMenu>
-          {room.map((project) => {
-            const other = project.members.find((m) => m._id !== user?._id);
-            return (
-              <SidebarMenuItem key={project._id}>
-                <SidebarMenuButton
-                  render={<Link href={`/chat/${project._id}`} />}
+          {rooms.map((room) => (
+            <SidebarMenuItem key={room._id}>
+              <SidebarMenuButton
+                tooltip={getRoomName(room)}
+                isActive={pathname === `/chat/${room._id}`}
+                render={<Link href={`/chat/${room._id}`} />}
+              >
+                {room.isGroup ? <UsersRoundCollaboration /> : <UserRoundPlus />}
+                <span>{getRoomName(room)}</span>
+              </SidebarMenuButton>
+
+              {room.isGroup && (
+                <SidebarMenuAction
+                  title="Leave group"
+                  disabled={leavingId === room._id}
+                  onClick={() => handleLeave(room._id)}
                 >
-                  <UserRoundPlus />
-                  <span>{other.username}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+                  <LogOut />
+                </SidebarMenuAction>
+              )}
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -221,7 +344,7 @@ function AppSidebar() {
                     <ChevronsUpDown className="ml-auto mr-1" />
                   </SidebarMenuButton>
                 }
-              ></DropdownMenuTrigger>
+              />
 
               <DropdownMenuContent
                 side="right"
@@ -229,11 +352,11 @@ function AppSidebar() {
                 className="min-w-56 rounded-lg"
               >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <CreditCard /> <Link href="/profile">profile</Link>
+                  <DropdownMenuItem render={<Link href="/profile" />}>
+                    <CreditCard /> profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell /> Notifications
+                  <DropdownMenuItem render={<Link href="/help" />}>
+                    <CircleQuestionMark /> help
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
